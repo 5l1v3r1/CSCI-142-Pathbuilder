@@ -5,7 +5,8 @@ import java.util.ArrayList;
 
 /**
  * Created by ptnega on 20/03/2017.
- *
+ * A class to represent players
+ * @author Duc Phan - ddp3945
  */
 public class DDP3945 implements PlayerModulePart1{
 
@@ -29,24 +30,19 @@ public class DDP3945 implements PlayerModulePart1{
     public void lastMove(PlayerMove m) {
         Coordinate coordinate = m.getCoordinate();
         int playerID = m.getPlayerId();
-        if (!isValidMove(coordinate, playerID, this.board.getGraph().length)) {
+
+        if (!isValidMove(coordinate, this.board.getDim())) {
             return;
         }
 
         int r = coordinate.getRow();
         int c = coordinate.getCol();
 
-        if (playerID == 1) {
-            Node u = this.board.getGraph()[r][c - 1];
-            Node v = this.board.getGraph()[r][c + 1];
-            u.addNeighbor(v);
-            v.addNeighbor(u);
-        } else if (playerID == 2) {
-            Node u = this.board.getGraph()[r - 1][c];
-            Node v = this.board.getGraph()[r + 1][c];
-            u.addNeighbor(v);
-            v.addNeighbor(u);
+        if (this.board.getGraph()[r][c] != 0) {
+            return;
         }
+
+        this.board.getGraph()[r][c] = playerID;
     }
 
     /**
@@ -70,41 +66,32 @@ public class DDP3945 implements PlayerModulePart1{
      * @return boolean value indicating if the player has a winning path.
      */
     public boolean hasWonGame(int id) {
-        int dim = (this.board.getGraph().length - 1) / 2;
+        int dim = this.board.getDim();
         ArrayList<Coordinate> start = new ArrayList<>();
         boolean[][] visited;
-        if (id == 1) {
-            for (int r = 1; r <= 2 * dim; r += 2) {
+
+        for (int r = 1; r < dim; r += 2) {
+            if (id == 1) {
                 start.add(new Coordinate(r, 0));
+            } else if (id == 2) {
+                start.add(new Coordinate(0, r));
             }
-            visited = this.board.BFS(start);
-            for (int r = 1; r <= 2 * dim; r += 2) {
-                if (visited[r][2 * dim]) {
-                    return true;
-                }
-            }
-            return false;
-        } else if (id == 2) {
-            for (int c = 1; c <= 2 * dim; c += 2) {
-                start.add(new Coordinate(0, c));
-            }
-            visited = this.board.BFS(start);
-            for (int c = 1; c <= 2 * dim; c += 2) {
-                if (visited[2 * dim][c]) {
-                    return true;
-                }
-            }
-            return false;
         }
-        return false;
+
+        return this.board.BFS(start, id);
     }
 
-
-    private boolean isValidMove(Coordinate coordinate, int playerId, int dim) {
+    /**
+     * A helper method to determine if a move is valid on the board or not
+     * @param coordinate The coordinate of the move to verify
+     * @param dim The dimension of the board
+     * @return true if the move is valid, false otherwise
+     */
+    private boolean isValidMove(Coordinate coordinate, int dim) {
         return (1 <= coordinate.getCol() &&
-                coordinate.getCol() <= (2 * dim - 1) &&
+                coordinate.getCol() < dim &&
                 1 <= coordinate.getRow() &&
-                coordinate.getRow() <= (2 * dim - 1)
+                coordinate.getRow() < dim
         );
     }
 }
